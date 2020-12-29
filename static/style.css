@@ -3,3 +3,15 @@
     text-align: center;
     color: #8a2be2;
 }
+
+.input{
+    font-size: 20px;
+}
+
+.right{
+    color: red;
+}
+
+.left{
+    color: left;
+}
