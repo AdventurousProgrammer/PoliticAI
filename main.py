@@ -7,7 +7,7 @@ warnings.filterwarnings('ignore')
 from flask import Flask, request, render_template, flash
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-
+# hello test git
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 app.config['SECRET_KEY'] = 'yo'
