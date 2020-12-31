@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 import warnings
 warnings.filterwarnings('ignore')
-from flask import Flask, request, render_template, flash
+from flask import Flask, request, render_template, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 # hello test git
@@ -43,18 +43,28 @@ posts = [
     }
 ]
 
-@app.route('/')
+@app.route('/',methods=['GET','POST'])
 def index():
-    return render_template('login.html')
+    if request.method == 'GET':
+        return render_template('login.html')
+    else:
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        return(redirect(url_for("home",username=username,password=password,email=email)))
 
 @app.route('/register', methods=['GET','POST'])
 def register():
-    return render_template('register.html')
-@app.route('/home',methods=['GET','POST'])
-def home():
-    username = request.form['username']
-    password = request.form['password']
-    email = request.form['email']
+    if request.method == 'GET':
+        return render_template('register.html')
+    else:
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        return (redirect(url_for("home", username=username, password=password, email=email)))
+
+@app.route('/home/<username>/<password>/<email>',methods=['GET','POST'])
+def home(username,password,email):
     #print('Retrieved form data')
     user = User(username=username, password=password, email=email)
     #print('Created User')
