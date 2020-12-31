@@ -51,7 +51,8 @@ def index():
         username = request.form['username']
         email = request.form['email']
         password = request.form['password']
-        return(redirect(url_for("home",username=username,password=password,email=email)))
+        print('Got form info')
+        return redirect(url_for("home",username=username,password=password,email=email))
 
 @app.route('/register', methods=['GET','POST'])
 def register():
@@ -61,17 +62,17 @@ def register():
         username = request.form['username']
         email = request.form['email']
         password = request.form['password']
-        return (redirect(url_for("home", username=username, password=password, email=email)))
+        return redirect(url_for("home",username=username,password=password,email=email))
 
 @app.route('/home/<username>/<password>/<email>',methods=['GET','POST'])
 def home(username,password,email):
     #print('Retrieved form data')
-    user = User(username=username, password=password, email=email)
+    user = User(username=username,password=password,email=email)
     #print('Created User')
     db.session.add(user)
     #print('Added User')
     db.session.commit()
-    posts = User.query.filter_by(username=username).all()
+    posts = Post.query.filter_by(user_id=user.id).all()
     #print('Committing User')
     #flash('Your ')
     return render_template('home.html',user=user,posts=posts,num_posts=len(posts))
