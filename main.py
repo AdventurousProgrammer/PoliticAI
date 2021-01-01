@@ -54,7 +54,7 @@ def index():
         users = User.query.filter_by(username=username).all()
         if len(users) > 0:
             print('Successfully connected existing user')
-            return redirect(url_for("home",username=username,password=password,email=email))
+            return redirect(url_for("home",username=username))
         else:
             return redirect(url_for("register"))
 
@@ -73,7 +73,7 @@ def register():
             db.session.commit()
             print("Successfully added new user to system")
             flash("Successfully added new user to system")
-            return redirect(url_for("home",username=username,password=password,email=email))
+            return redirect(url_for("home",username=username))
         else:
             print("Error User Already exists")
             flash(f"User {username} already exists in the system, this action is for new users","error")
@@ -81,11 +81,7 @@ def register():
 
 @app.route('/home/<username>',methods=['GET','POST'])
 def home(username):
-    #print('Retrieved form data')
-
-    #posts = Post.query.filter_by(user_id=user.id).all()
-    #print('Committing User')
-    #flash('Your ')
+    posts = Post.query.all()
     return render_template('home.html',username=username,posts=posts,num_posts=len(posts))
 
 def get_wing(text):

@@ -20,7 +20,7 @@
 <body>
       {% for i in range(0,num_posts) %}
         <h1>{{ posts[i].title }}</h1>
-        <p>By {{ posts[i].author }} on {{ posts[i].date }}</p>
+        <p>By {{ posts[i].author.username }} on {{ posts[i].date }}</p>
         <p>{{ posts[i].body }}</p>
       {% endfor %}
 
