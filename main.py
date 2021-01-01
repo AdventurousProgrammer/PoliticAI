@@ -62,20 +62,27 @@ def register():
         username = request.form['username']
         email = request.form['email']
         password = request.form['password']
-        return redirect(url_for("home",username=username,password=password,email=email))
+        users = User.query.filter_by(username=username).all()
+        if len(users) == 0:
+            user = User(username=username,password=password,email=email)
+            db.session.add(user)
+            db.session.commit()
+            print("Successfully added new user to system")
+            flash("Successfully added new user to system")
+            return redirect(url_for("home",username=username,password=password,email=email))
+        else:
+            print("Error User Already exists")
+            flash(f"User {username} already exists in the system, this action is for new users","error")
+            return render_template('register.html')
 
-@app.route('/home/<username>/<password>/<email>',methods=['GET','POST'])
-def home(username,password,email):
+@app.route('/home/<username>',methods=['GET','POST'])
+def home(username):
     #print('Retrieved form data')
-    user = User(username=username,password=password,email=email)
-    #print('Created User')
-    db.session.add(user)
-    #print('Added User')
-    db.session.commit()
-    posts = Post.query.filter_by(user_id=user.id).all()
+
+    #posts = Post.query.filter_by(user_id=user.id).all()
     #print('Committing User')
     #flash('Your ')
-    return render_template('home.html',user=user,posts=posts,num_posts=len(posts))
+    return render_template('home.html',username=username,posts=posts,num_posts=len(posts))
 
 def get_wing(text):
     embedding_model = SentenceTransformer(model_name_or_path='bert-base-nli-mean-tokens',
