@@ -51,8 +51,12 @@ def index():
         username = request.form['username']
         email = request.form['email']
         password = request.form['password']
-        print('Got form info')
-        return redirect(url_for("home",username=username,password=password,email=email))
+        users = User.query.filter_by(username=username).all()
+        if len(users) > 0:
+            print('Successfully connected existing user')
+            return redirect(url_for("home",username=username,password=password,email=email))
+        else:
+            return redirect(url_for("register"))
 
 @app.route('/register', methods=['GET','POST'])
 def register():
