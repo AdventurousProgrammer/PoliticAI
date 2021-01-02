@@ -100,20 +100,6 @@ def get_wing(text):
     x = new_model.predict_classes(embeddings)
     return 'right' if x[0][0] == 1 else 'left'
 
-@app.route('/submit', methods=['GET','POST'])
-def submit():
-    text = request.form['text']
-    wing = get_wing(text)
-    title = request.form['title']
-    # add to database
-    #user = User()
-    return render_template('post.html',title=title, text=text, wing=wing.upper())
-    #return '<h1> Post: {} </h1><br></br><h1>This post belongs to a {} winger </h1>'.format(text,wing)
-
-@app.route('/new_post',methods=['GET','POST'])
-def new_post():
-    return render_template('new_post.html')
-
 if __name__ == '__main__':
     app.run(debug=False) #change to false when just checking to see how it works, true for actual debugging
     db.create_all()
