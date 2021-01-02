@@ -82,13 +82,16 @@ def register():
 @app.route('/home/<username>',methods=['GET','POST'])
 def home(username):
     print("rendering home template")
-    posts = Post.query.all()
     if request.method == 'POST':
         text = request.form['text']
         wing = get_wing(text)
         title = request.form['title']
-        flash("You have successfully made a post on PoliticAI!")
-        # add post to database
+        flash("You have successfully made a post on PoliticAI!",'success')
+        user = User.query.filter_by(username=username).first()
+        post = Post(user_id=user.id, title=title, body=text)
+        db.session.add(post)
+        db.session.commit()
+    posts = Post.query.all()
     return render_template('home.html',username=username,posts=posts,num_posts=len(posts))
 
 def get_wing(text):
