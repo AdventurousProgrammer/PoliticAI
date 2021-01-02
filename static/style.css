@@ -1,5 +1,6 @@
 .header{
-    font-family: "Courier New";
+    font-family: 'Lobster',
+    cursive;
     text-align: center;
     color: #8a2be2;
 }
@@ -15,4 +16,14 @@
 
 .left{
     color: left;
+}
+
+.form{
+    text-align:right;
+    align-items: flex-end;
+    padding-left: 50%;
+}
+
+body{
+    background-color: bisqu;
 }
