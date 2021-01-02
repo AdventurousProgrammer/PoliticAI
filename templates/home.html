@@ -12,10 +12,12 @@
         {% endif %}
     {% endwith %}
     <h1 class="header">PoliticAI</h1>
-    <form action="{{ url_for('new_post') }}" method="post">
-	    <p><input type="submit" value="New Post"/></p>
-    </form>
     <h2>Welcome {{ username }}</h2>
+    <form action="#" method="post">
+        <textarea class="input" name="title" rows="1" cols="150"></textarea>
+        <textarea class="input" name="text" rows="10" cols="150"></textarea>
+	    <p><input type="submit" value="Submit"/></p>
+    </form>
 </head>
 <body>
       {% for i in range(0,num_posts) %}
@@ -23,6 +25,5 @@
         <p>By {{ posts[i].author.username }} on {{ posts[i].date }}</p>
         <p>{{ posts[i].body }}</p>
       {% endfor %}
-
 </body>
 </html>
