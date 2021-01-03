@@ -50,11 +50,29 @@
         <p><input type="submit" value="Submit" /></p>
     </form>
 
+    <form action="#" method="post">
+        <input type="radio" id="nyt" name="news" value="nyt">
+        <label for="nyt">New York Times</label><br>
+        <input type="radio" id="dw" name="news" value="dw">
+        <label for="dw">Daily Wire</label><br>
+        <input type="submit" value="Submit">
+    </form>
+
     {% for i in range(0,num_posts) %}
-    <h1>{{ posts[i].title }}</h1>
-    <p>By {{ posts[i].author.username }} on {{ posts[i].date }}</p>
-    <p>{{ posts[i].body }}</p>
+        <h1>{{ posts[i].title }}</h1>
+        <p>By {{ posts[i].author.username }} on {{ posts[i].date }}</p>
+        <p>{{ posts[i].body }}</p>
     {% endfor %}
+
+    {% if choose_article %}
+        <h1>{{ title }}</h1>
+        <h3>Keywords:</h3>
+        <p>{{ keywords }}</p>
+        <h3>Description:</h3>
+        <p>{{ description }}</p>
+        <h3>Summary:</h3>
+        <p>{{ summary }}</p>
+    {% endif %}
 </body>
 
 </html>

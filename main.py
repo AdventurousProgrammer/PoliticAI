@@ -7,6 +7,7 @@ warnings.filterwarnings('ignore')
 from flask import Flask, request, render_template, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from newspaper import Article
 # hello test git
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
@@ -14,6 +15,8 @@ app.config['SECRET_KEY'] = 'yo'
 db = SQLAlchemy(app)
 # one user has many posts, one post only has 1 user,
 # 1 to many model
+cnn_index = 0
+dw_index = 0
 
 cnn_links = [
             'https://www.cnn.com/2021/01/02/politics/senate-republicans-electoral-college/index.html',
@@ -99,18 +102,44 @@ def register():
 
 @app.route('/home/<username>',methods=['GET','POST'])
 def home(username):
+    choose_article = False
+    title = ''
+    keywords = []
+    summary = ''
+    description = ''
     print("rendering home template")
     if request.method == 'POST':
-        text = request.form['text']
-        wing = get_wing(text)
-        title = request.form['title']
-        flash("You have successfully made a post on PoliticAI!",'success')
-        user = User.query.filter_by(username=username).first()
-        post = Post(user_id=user.id, title=title, body=text)
-        db.session.add(post)
-        db.session.commit()
+        if 'text' in request.form and 'title' in request.form:
+            print('Getting text and title')
+            text = request.form['text']
+            wing = get_wing(text)
+            title = request.form['title']
+            flash("You have successfully made a post on PoliticAI!",'success')
+            user = User.query.filter_by(username=username).first()
+            post = Post(user_id=user.id, title=title, body=text)
+            db.session.add(post)
+            db.session.commit()
+        else:
+            print('Getting news info')
+            news = request.form['news']
+            #print(request.form['news'])
+            if news == 'nyt':
+                global cnn_index, cnn_links
+                if cnn_index < len(cnn_links):
+                    link = cnn_links[cnn_index]
+                    article = Article(link)
+                    article.download()
+                    article.parse()
+                    article.nlp()
+                    title = article.title
+                    keywords = article.keywords
+                    description = article.meta_description
+                    summary = article.summary
+                    choose_article = True
+                    cnn_index += 1
+            #print(request.form['dw'])
     posts = Post.query.all()
-    return render_template('home.html',username=username,posts=posts,num_posts=len(posts))
+    return render_template('home.html',username=username,posts=posts,num_posts=len(posts),choose_article=choose_article,title=title,keywords=keywords,description=description,summary=summary)
 
 def get_wing(text):
     embedding_model = SentenceTransformer(model_name_or_path='bert-base-nli-mean-tokens',
