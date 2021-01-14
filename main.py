@@ -48,6 +48,7 @@ class Post(db.Model):
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     body = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    wing = db.Column(db.String(20))
 
 posts = [
     {
@@ -118,6 +119,7 @@ def home(username):
             flash("You have successfully made a post on PoliticAI!",'success')
             user = User.query.filter_by(username=username).first()
             post = Post(user_id=user.id, title=title, body=text)
+            post.wing = wing
             db.session.add(post)
             db.session.commit()
         else:
