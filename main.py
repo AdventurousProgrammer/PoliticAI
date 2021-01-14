@@ -147,6 +147,10 @@ def get_wing(text):
     x = new_model.predict_classes(embeddings)
     return 'right' if x[0][0] == 1 else 'left'
 
+@app.route('/user/<username>',methods=['GET','POST'])
+def user(username):
+    return render_template("user.html",username=username)
+
 if __name__ == '__main__':
     app.run(debug=False) #change to false when just checking to see how it works, true for actual debugging
     db.create_all()
