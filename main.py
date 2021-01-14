@@ -17,7 +17,7 @@ db = SQLAlchemy(app)
 # 1 to many model
 cnn_index = 0
 dw_index = 0
-
+wing = ''
 cnn_links = [
             'https://www.cnn.com/2021/01/02/politics/senate-republicans-electoral-college/index.html',
              'https://www.cnn.com/2021/01/03/politics/trump-republicans-electoral-college-new-congress-democracy/index.html',
@@ -67,7 +67,7 @@ posts = [
 @app.route('/',methods=['GET','POST'])
 def index():
     if request.method == 'GET':
-        return render_template('login.html')
+        return render_template('login.html') #login.html originally
     else:
         username = request.form['username']
         email = request.form['email']
@@ -102,6 +102,7 @@ def register():
 
 @app.route('/home/<username>',methods=['GET','POST'])
 def home(username):
+    global wing
     choose_article = False
     title = ''
     keywords = []
@@ -121,25 +122,21 @@ def home(username):
             db.session.commit()
         else:
             print('Getting news info')
-            news = request.form['news']
+            link = request.form['news_link']
             #print(request.form['news'])
-            if news == 'nyt':
-                global cnn_index, cnn_links
-                if cnn_index < len(cnn_links):
-                    link = cnn_links[cnn_index]
-                    article = Article(link)
-                    article.download()
-                    article.parse()
-                    article.nlp()
-                    title = article.title
-                    keywords = article.keywords
-                    description = article.meta_description
-                    summary = article.summary
-                    choose_article = True
-                    cnn_index += 1
+            article = Article(link)
+            article.download()
+            article.parse()
+            article.nlp()
+            title = article.title
+            keywords = article.keywords
+            description = article.meta_description
+            summary = article.summary
+            #wing = get_wing(summary)
+            choose_article = True
             #print(request.form['dw'])
     posts = Post.query.all()
-    return render_template('home.html',username=username,posts=posts,num_posts=len(posts),choose_article=choose_article,title=title,keywords=keywords,description=description,summary=summary)
+    return render_template('home.html',username=username,posts=posts,num_posts=len(posts),choose_article=choose_article,title=title,keywords=keywords,description=description,summary=summary,wing=wing)
 
 def get_wing(text):
     embedding_model = SentenceTransformer(model_name_or_path='bert-base-nli-mean-tokens',
