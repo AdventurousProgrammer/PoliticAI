@@ -41,6 +41,7 @@ class User(db.Model):
     email = db.Column(db.String(120),nullable=False)
     password = db.Column(db.String(60),nullable=False)
     posts = db.relationship('Post',backref='author',lazy=True) #?
+    articles = db.relationship('News',backref='reader',lazy=True)
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -49,6 +50,14 @@ class Post(db.Model):
     body = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     wing = db.Column(db.String(20))
+
+class News(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    keywords = db.Column(db.Text)
+    description = db.Column(db.Text)
+    summary = db.Column(db.Text)
+    title = db.Column(db.Text)
+    reader_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 posts = [
     {
@@ -104,41 +113,35 @@ def register():
 @app.route('/home/<username>',methods=['GET','POST'])
 def home(username):
     global wing
-    choose_article = False
-    title = ''
-    keywords = []
-    summary = ''
-    description = ''
     print("rendering home template")
+    user = User.query.filter_by(username=username).first()
     if request.method == 'POST':
         if 'text' in request.form and 'title' in request.form:
             print('Getting text and title')
             text = request.form['text']
-            wing = get_wing(text)
             title = request.form['title']
             flash("You have successfully made a post on PoliticAI!",'success')
-            user = User.query.filter_by(username=username).first()
             post = Post(user_id=user.id, title=title, body=text)
-            post.wing = wing
+            post.wing = get_wing(text)
             db.session.add(post)
             db.session.commit()
         else:
             print('Getting news info')
             link = request.form['news_link']
-            #print(request.form['news'])
             article = Article(link)
             article.download()
             article.parse()
             article.nlp()
-            title = article.title
-            keywords = article.keywords
-            description = article.meta_description
-            summary = article.summary
-            #wing = get_wing(summary)
+            keywords = ''
+            for word in article.keywords:
+                keywords += word
+                keywords += ','
+            news_article = News(keywords=keywords,description=article.meta_description,summary=article.summary,title=article.title,reader_id=user.id)
+            db.session.add(news_article)
+            db.session.commit()
             choose_article = True
-            #print(request.form['dw'])
     posts = Post.query.all()
-    return render_template('home.html',username=username,posts=posts,num_posts=len(posts),choose_article=choose_article,title=title,keywords=keywords,description=description,summary=summary,wing=wing)
+    return render_template('home.html',username=username,posts=posts,num_posts=len(posts),news_articles=user.articles)
 
 def get_wing(text):
     embedding_model = SentenceTransformer(model_name_or_path='bert-base-nli-mean-tokens',

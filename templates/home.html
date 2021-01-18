@@ -53,15 +53,15 @@
         <p>{{ posts[i].body }}</p>
     {% endfor %}
 
-    {% if choose_article %}
-        <h1>{{ title }}</h1>
+    {% for article in news_articles %}
+        <h1>{{ article.title }}</h1>
         <h3>Keywords:</h3>
-        <p>{{ keywords }}</p>
+        <p>{{ article.keywords }}</p>
         <h3>Description:</h3>
-        <p>{{ description }}</p>
+        <p>{{ article.description }}</p>
         <h3>Summary:</h3>
-        <p>{{ summary }}</p>
-    {% endif %}
+        <p>{{ article.summary }}</p>
+    {% endfor %}
 {% endblock body %}
 </body>
 
