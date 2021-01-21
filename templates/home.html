@@ -50,9 +50,8 @@
         <p>By {{ post.author.username }} on {{ post.date }}</p>
         <p>{{ post.body }}</p>
         <form action="#" method="post">
-            <textarea class="input" name="comment" rows="1" cols="50" placeholder="Reply"></textarea>
+            <textarea class="input" name="reply" rows="1" cols="50" placeholder="Reply"></textarea>
             <button type="submit" class="btn btn-primary">Comment</button>
-
         </form>
     {% endfor %}
 

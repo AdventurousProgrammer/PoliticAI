@@ -20,6 +20,10 @@ class User(db.Model):
     password = db.Column(db.String(60),nullable=False)
     posts = db.relationship('Post',backref='author',lazy=True) #?
     articles = db.relationship('News',backref='reader',lazy=True)
+    num_right_articles = db.Column(db.Integer, default=0)
+    num_left_articles = db.Column(db.Integer, default=0)
+    num_right_posts = db.Column(db.Integer, default=0)
+    num_left_posts = db.Column(db.Integer, default=0)
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -36,6 +40,9 @@ class News(db.Model):
     summary = db.Column(db.Text)
     title = db.Column(db.Text)
     reader_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+
+
 
 @app.route('/',methods=['GET','POST'])
 def index():
@@ -95,6 +102,7 @@ def home(username):
             news_article = News(keywords=keywords,description=article.meta_description,summary=article.summary,title=article.title,reader_id=user.id)
             db.session.add(news_article)
             db.session.commit()
+
     posts = Post.query.all()
     return render_template('home.html',username=username,posts=posts,news_articles=user.articles)
 
