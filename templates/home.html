@@ -60,5 +60,8 @@
         <h3>Summary:</h3>
         <p>{{ article.summary }}</p>
     {% endfor %}
+    {% for source in news_sources %}
+        <p>{{ source }}</p>
+    {% endfor %}
 {% endblock body %}
 </body>

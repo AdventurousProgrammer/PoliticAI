@@ -117,7 +117,12 @@ def get_wing(text):
 
 @app.route('/user/<username>',methods=['GET','POST'])
 def user(username):
-    return render_template("user.html",username=username)
+    news_sources = []
+    if request.method == 'POST':
+        print('Getting News Sources')
+        news_sources = request.form.getlist('news-checkbox')
+    print(news_sources)
+    return render_template("user.html",username=username,news_sources=news_sources)
 
 if __name__ == '__main__':
     app.run(debug=False) #change to false when just checking to see how it works, true for actual debugging
