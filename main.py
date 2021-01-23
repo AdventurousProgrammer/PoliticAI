@@ -8,6 +8,9 @@ from flask import Flask, request, render_template, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from newspaper import Article
+import requests
+import json
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 app.config['SECRET_KEY'] = 'yo'
@@ -19,7 +22,8 @@ class User(db.Model):
     email = db.Column(db.String(120),nullable=False)
     password = db.Column(db.String(60),nullable=False)
     posts = db.relationship('Post',backref='author',lazy=True) #?
-    articles = db.relationship('News',backref='reader',lazy=True)
+    articles = db.relationship('NewsArticle',backref='reader',lazy=True)
+    news_sources = db.relationship('NewsSource', backref='subscriber', lazy=True)
     num_right_articles = db.Column(db.Integer, default=0)
     num_left_articles = db.Column(db.Integer, default=0)
     num_right_posts = db.Column(db.Integer, default=0)
@@ -33,7 +37,7 @@ class Post(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     wing = db.Column(db.String(20))
 
-class News(db.Model):
+class NewsArticle(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     keywords = db.Column(db.Text)
     description = db.Column(db.Text)
@@ -41,8 +45,13 @@ class News(db.Model):
     title = db.Column(db.Text)
     reader_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-
-
+class NewsSource(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.Text)
+    name = db.Column(db.String(200), unique=True, nullable=False)
+    subscriber_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    source_id = db.Column(db.String(50), nullable=False)
+    wing = db.column(db.String(20))
 
 @app.route('/',methods=['GET','POST'])
 def index():
@@ -80,6 +89,23 @@ def register():
 @app.route('/home/<username>',methods=['GET','POST'])
 def home(username):
     user = User.query.filter_by(username=username).first()
+    url = ('https://newsapi.org/v2/top-headlines?sources=msnbc&apiKey=b82b86f462fb4ab9bd39c2651a0d6c3d')
+    response = requests.get(url)
+    response = json.loads(response.text)
+    for news_article in response['articles']:
+        article = Article(news_article['url'])
+        article.download()
+        article.parse()
+        article.nlp()
+        keywords = ''
+        for word in article.keywords:
+            keywords += word
+            keywords += ', '
+        news_article = NewsArticle(keywords=keywords, description=article.meta_description, summary=article.summary,
+                                   title=article.title, reader_id=user.id)
+        db.session.add(news_article)
+        db.session.commit()
+
     if request.method == 'POST':
         if 'text' in request.form and 'title' in request.form:
             text = request.form['text']
@@ -99,7 +125,7 @@ def home(username):
             for word in article.keywords:
                 keywords += word
                 keywords += ', '
-            news_article = News(keywords=keywords,description=article.meta_description,summary=article.summary,title=article.title,reader_id=user.id)
+            news_article = NewsArticle(keywords=keywords, description=article.meta_description, summary=article.summary, title=article.title, reader_id=user.id)
             db.session.add(news_article)
             db.session.commit()
 
@@ -119,9 +145,14 @@ def get_wing(text):
 def user(username):
     news_sources = []
     if request.method == 'POST':
-        print('Getting News Sources')
+        user = User.query.filter_by(username=username).first()
         news_sources = request.form.getlist('news-checkbox')
-    print(news_sources)
+        for source in news_sources:
+            news_source = NewsSource(name=source.upper(), source_id=source, description='News Source',
+                                     subscriber_id=user.id)
+            db.session.add(news_source)
+            db.session.commit()
+    #print(news_sources)
     return render_template("user.html",username=username,news_sources=news_sources)
 
 if __name__ == '__main__':
