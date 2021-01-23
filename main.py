@@ -10,6 +10,9 @@ from datetime import datetime
 from newspaper import Article
 import requests
 import json
+from datetime import datetime, timedelta
+from secret import API_KEY
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
@@ -39,6 +42,7 @@ class Post(db.Model):
 
 class NewsArticle(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    news_site = db.Column(db.String(200))
     keywords = db.Column(db.Text)
     description = db.Column(db.Text)
     summary = db.Column(db.Text)
@@ -51,7 +55,8 @@ class NewsSource(db.Model):
     name = db.Column(db.String(200), unique=True, nullable=False)
     subscriber_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     source_id = db.Column(db.String(50), nullable=False)
-    wing = db.column(db.String(20))
+    wing = db.Column(db.String(20))
+    last_published = db.Column(db.DateTime, nullable=False, default=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0))
 
 @app.route('/',methods=['GET','POST'])
 def index():
@@ -89,23 +94,40 @@ def register():
 @app.route('/home/<username>',methods=['GET','POST'])
 def home(username):
     user = User.query.filter_by(username=username).first()
-    url = ('https://newsapi.org/v2/top-headlines?sources=msnbc&apiKey=b82b86f462fb4ab9bd39c2651a0d6c3d')
-    response = requests.get(url)
-    response = json.loads(response.text)
-    for news_article in response['articles']:
-        article = Article(news_article['url'])
-        article.download()
-        article.parse()
-        article.nlp()
-        keywords = ''
-        for word in article.keywords:
-            keywords += word
-            keywords += ', '
-        news_article = NewsArticle(keywords=keywords, description=article.meta_description, summary=article.summary,
-                                   title=article.title, reader_id=user.id)
-        db.session.add(news_article)
-        db.session.commit()
-
+    num = 0
+    last_read = datetime.now()
+    for source in user.news_sources:
+        url = ('https://newsapi.org/v2/top-headlines?'+ 'sources=' + str(source.source_id) + '&apiKey='+ str(API_KEY))
+        response = requests.get(url)
+        response = json.loads(response.text)
+        for news_article in response['articles']:
+            article = Article(news_article['url'])
+            article.download()
+            article.parse()
+            article.nlp()
+            timestamp = news_article['publishedAt']
+            date = timestamp[0:10]
+            year = date[0:4]
+            month = date[5:7]
+            day = date[8:10]
+            time = timestamp[11:19]
+            hour = time[0:2]
+            min = time[3:5]
+            sec = time[6:8]
+            dt = datetime(int(year), int(month), int(day), hour=int(hour), minute=int(min), second=int(sec))
+            dt = dt - timedelta(hours=6)
+            if num == 0:
+                last_read = dt
+            keywords = ''
+            for word in article.keywords:
+                keywords += word
+                keywords += ', '
+            if dt > source.last_published:
+                news_article = NewsArticle(keywords=keywords, news_site=source.name, description=article.meta_description, summary=article.summary,
+                                           title=article.title, reader_id=user.id)
+                db.session.add(news_article)
+                db.session.commit()
+            num += 1
     if request.method == 'POST':
         if 'text' in request.form and 'title' in request.form:
             text = request.form['text']

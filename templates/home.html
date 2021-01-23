@@ -52,6 +52,7 @@
     {% endfor %}
 
     {% for article in news_articles %}
+        <h1>Source: {{ article.news_site }}</h1>
         <h1>{{ article.title }}</h1>
         <h3>Keywords:</h3>
         <p>{{ article.keywords }}</p>
