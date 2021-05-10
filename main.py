@@ -1,7 +1,8 @@
 from sentence_transformers import SentenceTransformer
 import torch
 import numpy as np
-import tensorflow as tf
+import pickle
+#import tensorflow as tf
 import warnings
 warnings.filterwarnings('ignore')
 from flask import Flask, request, render_template, flash, redirect, url_for
@@ -12,6 +13,7 @@ import requests
 import json
 from datetime import datetime, timedelta
 from secret import API_KEY
+from secret import YOUTUBE_API_KEY
 
 
 app = Flask(__name__)
@@ -159,9 +161,10 @@ def get_wing(text):
                                           device=torch.device('cpu'))
     embeddings = embedding_model.encode(text)
     embeddings = np.transpose(np.array(embeddings).reshape(-1, 1))
-    new_model = tf.keras.models.load_model('my_model.h5')
-    x = new_model.predict_classes(embeddings)
-    return 'right' if x[0][0] == 1 else 'left'
+    pol_class_model = pickle.load(open('pol_classifier_model.sav','rb'))
+    # tf.keras.models.load_model('nn_pol_classifier_model.h5')
+    x = pol_class_model.predict(embeddings)
+    return 'right' if x[0] == 1 else 'left'
 
 @app.route('/user/<username>',methods=['GET','POST'])
 def user(username):
